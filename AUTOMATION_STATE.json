@@ -1,0 +1,8 @@
+{
+  "rateLimitedUntil": null,
+  "backoffMinutes": 0,
+  "incidentId": null,
+  "notifiedAt": null,
+  "lastError": null,
+  "updatedAt": null
+}

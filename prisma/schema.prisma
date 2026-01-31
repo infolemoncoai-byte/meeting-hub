@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum MeetingStatus {
+  UPLOADED
+  TRANSCRIBING
+  TRANSCRIBED
+  SUMMARIZING
+  READY
+  FAILED
+}
+
+model Meeting {
+  id        String        @id @default(cuid())
+  title     String
+  status    MeetingStatus @default(UPLOADED)
+  source    String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  audioPath String?
+
+  transcriptText String?
+  summaryMd      String?
+
+  qaThreads QAThread[]
+
+  @@index([createdAt])
+}
+
+model QAThread {
+  id        String   @id @default(cuid())
+  meetingId String
+  question  String
+  answerMd  String
+  citations Json?
+  createdAt DateTime @default(now())
+
+  meeting Meeting @relation(fields: [meetingId], references: [id])
+
+  @@index([meetingId, createdAt])
+}
