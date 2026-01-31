@@ -1,6 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 
-const g = globalThis as any;
+type GlobalWithPrisma = typeof globalThis & {
+  __prisma?: PrismaClient;
+};
+
+const g = globalThis as GlobalWithPrisma;
 
 // Prisma v7 + Next build: avoid touching DB during build-time rendering.
 // Use a vanilla client; runtime uses DATABASE_URL from env.

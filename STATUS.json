@@ -1,5 +1,5 @@
 {
-  "state": "idle",
-  "task": null,
-  "updatedAt": null
+  "state": "sprint",
+  "task": "MSU1: Upload page + API store audio + create Meeting row",
+  "updatedAt": "2026-01-31T23:23:58Z"
 }
