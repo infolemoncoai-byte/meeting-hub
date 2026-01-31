@@ -34,10 +34,18 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
     return NextResponse.json({ error: "meeting has no audioPath" }, { status: 400 });
   }
 
+  // Only allow from a small set of states.
+  if (!(meeting.status === "UPLOADED" || meeting.status === "FAILED")) {
+    return NextResponse.json(
+      { error: `cannot transcribe when status=${meeting.status}` },
+      { status: 409 },
+    );
+  }
+
   // mark TRANSCRIBING first so UI can reflect progress
   await prisma.meeting.update({
     where: { id: meeting.id },
-    data: { status: "TRANSCRIBING" },
+    data: { status: "TRANSCRIBING", transcriptText: null },
     select: { id: true },
   });
 
