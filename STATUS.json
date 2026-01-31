@@ -1,5 +1,5 @@
 {
   "state": "sprint",
-  "task": "MSU1: Upload page + API store audio + create Meeting row",
-  "updatedAt": "2026-01-31T23:23:58Z"
+  "task": "MSU2: Transcription worker v0 (local faster-whisper) + status updates",
+  "updatedAt": "2026-01-31T23:40:57Z"
 }

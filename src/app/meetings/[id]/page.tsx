@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { TranscribeButton } from "./TranscribeButton";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -16,10 +17,13 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
       status: true,
       createdAt: true,
       audioPath: true,
+      transcriptText: true,
     },
   });
 
   if (!meeting) return notFound();
+
+  const canTranscribe = Boolean(meeting.audioPath) && (meeting.status === "UPLOADED" || meeting.status === "FAILED");
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 p-6">
@@ -45,8 +49,17 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      <div className="text-sm text-muted-foreground">
-        Next: MSU2 will add a Transcribe button + worker.
+      <div className="space-y-3 rounded-lg border p-4">
+        <div className="text-sm font-medium">Transcription</div>
+        <TranscribeButton meetingId={meeting.id} disabled={!canTranscribe} />
+
+        {meeting.transcriptText ? (
+          <pre className="max-h-[50vh] overflow-auto whitespace-pre-wrap rounded-md bg-muted p-3 text-xs">
+            {meeting.transcriptText}
+          </pre>
+        ) : (
+          <div className="text-sm text-muted-foreground">No transcript yet.</div>
+        )}
       </div>
     </main>
   );
