@@ -6,7 +6,7 @@
 - Prefer **local** work; use OpenAI only for summary/Q&A.
 
 ## TODO (P0)
-- [ ] MSU1: Upload page + API to store audio file on disk (no processing yet)
+- [x] MSU1: Upload page + API to store audio file on disk (no processing yet)
   - AC: upload m4a/wav; creates Meeting row; stores file under `data/audio/<meetingId>/...`
 - [ ] MSU2: Transcription worker v0 (local faster-whisper) + status updates
   - AC: click "Transcribe" starts; status transitions; transcript saved; no diarization
