@@ -17,7 +17,31 @@ export function TranscribeButton({ meetingId, disabled }: { meetingId: string; d
         throw new Error([data?.error, data?.detail].filter(Boolean).join(": ") || `Failed (${res.status})`);
       }
 
-      // simplest: reload to show updated status/transcript.
+      // If the worker is detached, we should poll until status leaves TRANSCRIBING.
+      // Keeps UX simple without adding websocket/SSE.
+      const startedAt = Date.now();
+      const timeoutMs = 2 * 60 * 1000;
+
+      while (Date.now() - startedAt < timeoutMs) {
+        await new Promise((r) => setTimeout(r, 2000));
+
+        const stRes = await fetch(`/api/meetings/${meetingId}/status`, { cache: "no-store" });
+        const st = (await stRes.json().catch(() => null)) as null | {
+          status?: string;
+          error?: string;
+        };
+
+        if (!stRes.ok) {
+          throw new Error(st?.error || `Status check failed (${stRes.status})`);
+        }
+
+        if (st?.status && st.status !== "TRANSCRIBING") {
+          window.location.reload();
+          return;
+        }
+      }
+
+      // If it takes longer than our polling window, just reload; user can refresh again.
       window.location.reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
