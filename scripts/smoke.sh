@@ -19,11 +19,13 @@ fi
 COOKIE_JAR=$(mktemp)
 trap 'rm -f "${COOKIE_JAR}"' EXIT
 
-# Login
-curl -sS -L -c "${COOKIE_JAR}" -b "${COOKIE_JAR}" \
+# Login (request JSON so we don't follow redirects and accidentally POST to /login)
+curl -sS -c "${COOKIE_JAR}" -b "${COOKIE_JAR}" \
   -X POST "${BASE_URL}/api/login" \
+  -H "Accept: application/json" \
+  -H "x-meeting-hub-client: script" \
   -F "password=${PASSWORD}" \
-  >/dev/null
+  | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{try{const j=JSON.parse(s); if(!j.ok){console.error(j); process.exit(1)} }catch(e){console.error(s); process.exit(1)}})'
 
 echo "Logged in."
 
