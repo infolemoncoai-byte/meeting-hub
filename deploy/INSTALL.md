@@ -20,6 +20,11 @@ MEETING_HUB_PASSWORD=CHANGEME_STRONG
 SESSION_PASSWORD=CHANGEME_32+_CHARS_LONG
 DATABASE_URL="file:/home/ubuntu/clawd/meeting-hub/data/prod.db"
 
+# Cookie settings
+# If you are serving over plain HTTP (e.g. direct :3001, private LAN), set:
+MEETING_HUB_COOKIE_SECURE=0
+# If you're behind HTTPS, omit this (cookie defaults to secure).
+
 # Optional (needed for MSU3 summarize)
 OPENAI_API_KEY=...
 OPENAI_MODEL=gpt-4o-mini
