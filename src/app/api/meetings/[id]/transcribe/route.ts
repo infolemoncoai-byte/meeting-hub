@@ -63,8 +63,10 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
     return NextResponse.json({ error: "audio file not found on disk" }, { status: 400 });
   }
 
+  const python = process.env.MEETING_HUB_PYTHON || "python3";
+
   try {
-    const { stdout } = await execFileAsync("python3", [scriptPath, absAudioPath]);
+    const { stdout } = await execFileAsync(python, [scriptPath, absAudioPath]);
     const transcript = stdout.trim();
 
     await prisma.meeting.update({
