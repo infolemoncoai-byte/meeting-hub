@@ -10,11 +10,6 @@
   - AC: upload m4a/wav; creates Meeting row; stores file under `data/audio/<meetingId>/...`
 - [x] MSU2: Transcription worker v0 (local faster-whisper) + status updates
   - AC: click "Transcribe" starts; status transitions; transcript saved; no diarization
-- [x] MSU3: Summarize with OpenAI (Chinese) + store summary
-  - AC: summary sections: Decisions/Action Items/Risks/Key Topics/Glossary
-- [x] MSU4: Meeting page `/meetings/:id` two-panel UI
-  - Left: summary (markdown)
-  - Right: Q&A panel (store Q/A history)
 
 ## TODO (P1)
 - [ ] MSU5: Retrieval v0 for Q&A (keyword/FTS) + citations (optional)
@@ -23,3 +18,8 @@
 
 ## DONE
 - [x] Repo created + Next.js scaffold + Password Gate + SQLite/Prisma init
+- [x] MSU3: Summarize with OpenAI (Chinese) + store summary
+  - AC: summary sections: Decisions/Action Items/Risks/Key Topics/Glossary
+- [x] MSU4: Meeting page `/meetings/:id` two-panel UI
+  - Left: summary (markdown)
+  - Right: Q&A panel (store Q/A history)
