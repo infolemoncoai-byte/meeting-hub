@@ -5,6 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=ubuntu
+Group=ubuntu
 WorkingDirectory=/home/ubuntu/clawd/meeting-hub
 Environment=NODE_ENV=production
 Environment=PORT=3001
@@ -12,13 +13,25 @@ EnvironmentFile=/etc/meeting-hub/meeting-hub.env
 ExecStart=/usr/bin/npm start
 Restart=on-failure
 RestartSec=3
+UMask=0077
 
 # Basic hardening (keep it compatible with app living under /home)
 NoNewPrivileges=true
 PrivateTmp=true
+PrivateDevices=true
 ProtectSystem=strict
 ProtectHome=false
-ReadWritePaths=/home/ubuntu/clawd/meeting-hub/data /home/ubuntu/clawd/meeting-hub/prisma
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+RemoveIPC=true
+SystemCallArchitectures=native
+
+# Only allow writes to app state folders
+ReadWritePaths=/home/ubuntu/clawd/meeting-hub/data /home/ubuntu/clawd/meeting-hub/prisma /home/ubuntu/clawd/meeting-hub/.next/cache
 
 [Install]
 WantedBy=multi-user.target

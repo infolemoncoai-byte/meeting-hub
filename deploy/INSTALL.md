@@ -11,6 +11,9 @@ Target: EC2 / Ubuntu host.
 ```bash
 sudo mkdir -p /etc/meeting-hub
 sudo nano /etc/meeting-hub/meeting-hub.env
+# Lock down secrets but keep readable by the service user/group
+sudo chown root:ubuntu /etc/meeting-hub/meeting-hub.env
+sudo chmod 640 /etc/meeting-hub/meeting-hub.env
 ```
 
 Example:
@@ -37,11 +40,17 @@ python3 -m venv .venv
 ./.venv/bin/pip install -r scripts/requirements.txt
 ```
 
-## 3) Build once
+## 3) Install deps + build once
 ```bash
 cd /home/ubuntu/clawd/meeting-hub
 npm ci
 npm run build
+```
+
+## 3.1) Apply DB migrations (if any)
+```bash
+cd /home/ubuntu/clawd/meeting-hub
+npx prisma migrate deploy
 ```
 
 ## 4) Install systemd unit
