@@ -50,22 +50,28 @@ export async function POST(req: Request) {
       select: { id: true },
     });
 
-    const safeName = sanitizeFilename(file.name);
-    const relPath = path.join("data", "audio", meeting.id, safeName);
-    const absPath = path.join(process.cwd(), relPath);
+    try {
+      const safeName = sanitizeFilename(file.name);
+      const relPath = path.join("data", "audio", meeting.id, safeName);
+      const absPath = path.join(process.cwd(), relPath);
 
-    await fs.mkdir(path.dirname(absPath), { recursive: true });
+      await fs.mkdir(path.dirname(absPath), { recursive: true });
 
-    const arrayBuffer = await file.arrayBuffer();
-    await fs.writeFile(absPath, Buffer.from(arrayBuffer));
+      const arrayBuffer = await file.arrayBuffer();
+      await fs.writeFile(absPath, Buffer.from(arrayBuffer));
 
-    await prisma.meeting.update({
-      where: { id: meeting.id },
-      data: { audioPath: relPath },
-      select: { id: true },
-    });
+      await prisma.meeting.update({
+        where: { id: meeting.id },
+        data: { audioPath: relPath },
+        select: { id: true },
+      });
 
-    return NextResponse.json({ id: meeting.id });
+      return NextResponse.json({ id: meeting.id });
+    } catch (e) {
+      // Best-effort cleanup to avoid dangling meetings when disk write fails.
+      await prisma.meeting.delete({ where: { id: meeting.id } }).catch(() => undefined);
+      throw e;
+    }
   } catch (err) {
     console.error("upload failed", err);
     return NextResponse.json({ error: err instanceof Error ? err.message : "unknown error" }, { status: 500 });

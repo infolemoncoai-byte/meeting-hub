@@ -1,5 +1,5 @@
 {
-  "state": "idle",
-  "task": null,
-  "updatedAt": "2026-02-01T01:38:00Z"
+  "state": "sprint",
+  "task": "MSU1 polish: cleanup meeting on upload failure",
+  "updatedAt": "2026-02-01T01:53:23Z"
 }
