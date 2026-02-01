@@ -21,12 +21,12 @@
     - Transcribe each chunk independently.
     - Persist per-chunk transcript and final stitched `Meeting.transcriptText`.
 
-- [ ] LongAudio MSU3: Progress heartbeat + UI progress
+- [x] LongAudio MSU3: Progress heartbeat + UI progress
   - AC:
     - Persist `doneChunks`, `heartbeatAt`, `lastError`.
     - UI shows `done/total` and last heartbeat; no more "looks stuck".
 
-- [ ] LongAudio MSU4: Queue + idempotent transcribe enqueue
+- [x] LongAudio MSU4: Queue + idempotent transcribe enqueue
   - AC:
     - Repeated clicks do not start duplicate workers.
     - Worker is resumable.
