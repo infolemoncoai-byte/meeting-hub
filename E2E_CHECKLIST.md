@@ -36,7 +36,7 @@ Use this after deploy (or locally) to confirm the full flow.
 ## 5) Q&A
 - Ask a question referencing the meeting (e.g. “有哪些 action items?”)
 - Expect: Q/A history persists on refresh
-- Note: answers may be empty until MSU5 (retrieval/answering) ships
+- Expect: answer contains local retrieval excerpts from transcript/summary (MSU5)
 
 ## 6) Restart persistence
 - Restart server/service
