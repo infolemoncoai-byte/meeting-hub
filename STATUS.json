@@ -1,5 +1,5 @@
 {
   "state": "idle",
-  "task": "build+lint green; backlog bookkeeping + deploy artifacts present",
-  "updatedAt": "2026-02-01T03:18:45Z"
+  "task": "Build/lint green; prod service up. Waiting on an uploaded meeting audio file to run full E2E (upload→transcribe→summarize→Q&A).",
+  "updatedAt": "2026-02-01T03:33:40Z"
 }
