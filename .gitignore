@@ -60,3 +60,6 @@ next-env.d.ts
 
 # local scratch audio
 /data/tmp_*
+
+# local E2E scratch
+/tmp/
