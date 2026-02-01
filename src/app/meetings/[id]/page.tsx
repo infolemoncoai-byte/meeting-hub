@@ -20,6 +20,7 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
       status: true,
       createdAt: true,
       audioPath: true,
+      totalChunks: true,
       transcriptText: true,
       summaryMd: true,
       qaThreads: {
@@ -63,6 +64,9 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
         </div>
         <div>
           <span className="text-muted-foreground">Audio path:</span> {meeting.audioPath || "(none)"}
+        </div>
+        <div>
+          <span className="text-muted-foreground">Chunks:</span> {meeting.totalChunks ?? "(unknown)"}
         </div>
       </div>
 

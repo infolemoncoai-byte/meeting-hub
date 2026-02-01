@@ -13,6 +13,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       status: true,
       transcriptText: true,
       summaryMd: true,
+      totalChunks: true,
       updatedAt: true,
     },
   });
@@ -26,6 +27,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     status: meeting.status,
     hasTranscript: Boolean(meeting.transcriptText),
     hasSummary: Boolean(meeting.summaryMd),
+    totalChunks: meeting.totalChunks ?? null,
     updatedAt: meeting.updatedAt.toISOString(),
   });
 }
