@@ -13,11 +13,11 @@ ExecStart=/usr/bin/npm start
 Restart=on-failure
 RestartSec=3
 
-# Basic hardening
+# Basic hardening (keep it compatible with app living under /home)
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=full
-ProtectHome=true
+ProtectSystem=strict
+ProtectHome=false
 ReadWritePaths=/home/ubuntu/clawd/meeting-hub/data /home/ubuntu/clawd/meeting-hub/prisma
 
 [Install]
