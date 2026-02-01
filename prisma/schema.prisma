@@ -29,6 +29,9 @@ model Meeting {
   transcriptText String?
   summaryMd      String?
 
+  // Long audio support
+  totalChunks Int?
+
   qaThreads QAThread[]
 
   @@index([createdAt])
