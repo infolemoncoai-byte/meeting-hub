@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { TranscribeButton } from "./TranscribeButton";
 import { SummarizeButton } from "./SummarizeButton";
+import { Markdown } from "@/components/Markdown";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -70,9 +71,9 @@ export default async function MeetingPage({ params }: { params: Promise<{ id: st
         <SummarizeButton meetingId={meeting.id} disabled={!canSummarize} />
 
         {meeting.summaryMd ? (
-          <pre className="max-h-[50vh] overflow-auto whitespace-pre-wrap rounded-md bg-muted p-3 text-xs">
-            {meeting.summaryMd}
-          </pre>
+          <div className="max-h-[50vh] overflow-auto rounded-md bg-muted p-3">
+            <Markdown md={meeting.summaryMd} />
+          </div>
         ) : (
           <div className="text-sm text-muted-foreground">No summary yet.</div>
         )}
