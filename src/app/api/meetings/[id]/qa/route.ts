@@ -23,15 +23,18 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   }
 
   // MSU4: store Q/A history. Answering comes later (retrieval/OpenAI in MSU5+).
-  await prisma.qAThread.create({
+  const thread = await prisma.qAThread.create({
     data: {
       meetingId: meeting.id,
       question,
       answerMd: "",
       // citations omitted for now (MSU5+)
     },
-    select: { id: true },
+    select: { id: true, question: true, answerMd: true, createdAt: true },
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    thread: { ...thread, createdAt: thread.createdAt.toISOString() },
+  });
 }

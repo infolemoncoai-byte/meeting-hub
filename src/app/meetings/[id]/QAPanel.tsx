@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Markdown } from "@/components/Markdown";
 
 export type QAThreadRow = {
   id: string;
@@ -9,7 +10,15 @@ export type QAThreadRow = {
   createdAt: string;
 };
 
+type QAResponse =
+  | { ok: true; thread: QAThreadRow }
+  | {
+      ok?: false;
+      error?: string;
+    };
+
 export function QAPanel({ meetingId, initial }: { meetingId: string; initial: QAThreadRow[] }) {
+  const [threads, setThreads] = useState<QAThreadRow[]>(initial);
   const [question, setQuestion] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,12 +40,12 @@ export function QAPanel({ meetingId, initial }: { meetingId: string; initial: QA
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: q }),
       });
-      const data = (await res.json().catch(() => null)) as null | { error?: string };
-      if (!res.ok) throw new Error(data?.error || `Failed (${res.status})`);
+      const data = (await res.json().catch(() => null)) as QAResponse | null;
+      if (!res.ok) throw new Error((data && "error" in data && data.error) ? data.error : `Failed (${res.status})`);
+      if (!data || !data.ok) throw new Error("Unexpected response");
 
       setQuestion("");
-      // simplest: reload to show new question
-      window.location.reload();
+      setThreads((prev) => [data.thread, ...prev]);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -69,14 +78,22 @@ export function QAPanel({ meetingId, initial }: { meetingId: string; initial: QA
       </form>
 
       <div className="space-y-3">
-        {initial.length === 0 ? (
+        {threads.length === 0 ? (
           <div className="text-sm text-muted-foreground">No questions yet.</div>
         ) : (
-          initial.map((t) => (
+          threads.map((t) => (
             <div key={t.id} className="rounded-md border p-3">
               <div className="text-xs text-muted-foreground">{new Date(t.createdAt).toLocaleString()}</div>
               <div className="mt-1 text-sm font-medium">Q: {t.question}</div>
-              <div className="mt-2 text-sm text-muted-foreground">A: {t.answerMd ? t.answerMd : "(not answered yet)"}</div>
+
+              <div className="mt-2 text-sm text-muted-foreground">A:</div>
+              {t.answerMd ? (
+                <div className="mt-1 rounded-md bg-muted p-2 text-sm">
+                  <Markdown md={t.answerMd} />
+                </div>
+              ) : (
+                <div className="mt-1 text-sm text-muted-foreground">(not answered yet)</div>
+              )}
             </div>
           ))
         )}
