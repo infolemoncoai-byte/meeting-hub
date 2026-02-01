@@ -19,20 +19,22 @@ function tokenize(q: string) {
     .filter((t) => t.length >= 2)
     .filter((t) => !STOPWORDS.has(t));
 
-  if (ascii.length > 0) return ascii;
-
   // CJK fallback: build overlapping bigrams so Chinese queries can match.
   // Keep it simple and local (no OpenAI).
   const cleaned = q.replace(/\s+/g, "").trim();
   const cjkChars = Array.from(cleaned).filter((ch) => /[\u4E00-\u9FFF]/.test(ch));
-  if (cjkChars.length < 2) return [];
 
   const grams: string[] = [];
-  for (let i = 0; i < cjkChars.length - 1; i++) {
-    grams.push(cjkChars[i] + cjkChars[i + 1]);
+  if (cjkChars.length >= 2) {
+    for (let i = 0; i < cjkChars.length - 1; i++) {
+      grams.push(cjkChars[i] + cjkChars[i + 1]);
+    }
   }
-  // de-dupe
-  return Array.from(new Set(grams));
+
+  // If query contains both ASCII and CJK (e.g. "有哪些 action items"), keep both.
+  // This materially improves retrieval for bilingual prompts.
+  const out = [...ascii, ...grams];
+  return Array.from(new Set(out));
 }
 
 const STOPWORDS = new Set([
