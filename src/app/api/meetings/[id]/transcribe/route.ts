@@ -63,7 +63,10 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
     return NextResponse.json({ error: "audio file not found on disk" }, { status: 400 });
   }
 
-  const python = process.env.MEETING_HUB_PYTHON || "python3";
+  // Prefer a repo-local venv if present (more predictable for systemd deploys).
+  // Override with MEETING_HUB_PYTHON if you want to point at a different interpreter.
+  const venvPython = path.join(process.cwd(), ".venv", "bin", "python3");
+  const python = process.env.MEETING_HUB_PYTHON || (await fs.stat(venvPython).then(() => venvPython).catch(() => "python3"));
 
   try {
     const { stdout } = await execFileAsync(python, [scriptPath, absAudioPath]);

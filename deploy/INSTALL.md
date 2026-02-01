@@ -25,27 +25,34 @@ OPENAI_API_KEY=...
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-## 2) Build once
+## 2) Install Python deps for transcription (MSU2)
+```bash
+cd /home/ubuntu/clawd/meeting-hub
+python3 -m venv .venv
+./.venv/bin/pip install -r scripts/requirements.txt
+```
+
+## 3) Build once
 ```bash
 cd /home/ubuntu/clawd/meeting-hub
 npm ci
 npm run build
 ```
 
-## 3) Install systemd unit
+## 4) Install systemd unit
 ```bash
 sudo cp deploy/meeting-hub.service /etc/systemd/system/meeting-hub.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now meeting-hub
 ```
 
-## 4) Check status / logs
+## 5) Check status / logs
 ```bash
 systemctl status meeting-hub --no-pager
 journalctl -u meeting-hub -n 200 --no-pager
 ```
 
-## 5) Update flow
+## 6) Update flow
 ```bash
 cd /home/ubuntu/clawd/meeting-hub
 git pull
