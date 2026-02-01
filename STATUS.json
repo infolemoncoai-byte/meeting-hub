@@ -1,5 +1,5 @@
 {
   "state": "idle",
-  "task": "Build/lint green; prod service up. Waiting on an uploaded meeting audio file to run full E2E (upload→transcribe→summarize→Q&A).",
-  "updatedAt": "2026-02-01T03:33:40Z"
+  "task": "Idle: prod service running; pending E2E run with sample meeting audio",
+  "updatedAt": "2026-02-01T03:52:40Z"
 }
