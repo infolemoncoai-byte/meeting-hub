@@ -32,9 +32,10 @@
     - Worker is resumable.
 
 ## TODO (P1)
-- [ ] MSU6: OpenAI Audio API fallback for transcription (toggle)
+- [ ] (none)
 
 ## DONE
+- [x] MSU6: OpenAI Audio API fallback for transcription (toggle)
 - [x] MSU7: Production deploy (systemd service) on port 3001 + basic hardening
 - [x] MSU5: Retrieval v0 for Q&A (keyword/FTS) + citations (optional)
 - [x] Repo created + Next.js scaffold + Password Gate + SQLite/Prisma init

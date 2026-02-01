@@ -41,3 +41,20 @@ Then:
 Notes:
 - Transcript is stored in `Meeting.transcriptText` in SQLite.
 - The audio file is stored under `data/audio/<meetingId>/...`
+
+### OpenAI Audio fallback (MSU6)
+
+If local transcription fails, you can enable an OpenAI Audio API fallback:
+
+```bash
+# .env
+MEETING_HUB_TRANSCRIBE_FALLBACK=1
+OPENAI_API_KEY=sk-...
+# optional (default: gpt-4o-mini-transcribe)
+OPENAI_AUDIO_MODEL=gpt-4o-mini-transcribe
+```
+
+Behavior:
+- Local (faster-whisper) stays the default.
+- When a local chunk fails, the worker retries that chunk with OpenAI.
+- If chunking fails, the worker retries the whole file with OpenAI.

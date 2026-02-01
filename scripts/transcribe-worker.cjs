@@ -5,6 +5,7 @@
   Usage: node scripts/transcribe-worker.cjs <meetingId>
 
   Runs faster-whisper transcription (via scripts/transcribe.py) and writes transcript back to DB.
+  Optional OpenAI fallback (see README): MEETING_HUB_TRANSCRIBE_FALLBACK=1
 */
 
 const path = require("node:path");
@@ -26,6 +27,46 @@ function execFileAsync(cmd, args) {
   });
 }
 
+function boolEnv(v) {
+  if (!v) return false;
+  const s = String(v).toLowerCase();
+  return s === "1" || s === "true" || s === "yes" || s === "on" || s === "openai";
+}
+
+async function transcribeWithOpenAI(absPath) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  const model = process.env.OPENAI_AUDIO_MODEL || "gpt-4o-mini-transcribe";
+
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY is not set");
+  }
+
+  const buf = await fs.readFile(absPath);
+  const fd = new FormData();
+  fd.append("model", model);
+  fd.append("file", new Blob([buf]), path.basename(absPath));
+
+  const resp = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: fd,
+  });
+
+  const json = await resp.json().catch(() => null);
+  if (!resp.ok) {
+    const detail = json ? JSON.stringify(json).slice(0, 1500) : "(no body)";
+    throw new Error(`OpenAI audio transcription failed (${resp.status}): ${detail}`);
+  }
+
+  if (!json || typeof json.text !== "string") {
+    throw new Error("OpenAI audio transcription returned empty text");
+  }
+
+  return json.text.trim();
+}
+
 async function main() {
   const meetingId = process.argv[2];
   if (!meetingId) {
@@ -34,6 +75,7 @@ async function main() {
   }
 
   const prisma = new PrismaClient();
+  const useOpenAIFallback = boolEnv(process.env.MEETING_HUB_TRANSCRIBE_FALLBACK);
 
   try {
     const meeting = await prisma.meeting.findUnique({
@@ -118,20 +160,44 @@ async function main() {
         }`,
       );
 
-      const { stdout } = await execFileAsync(python, [scriptPath, absAudioPath]);
-      const transcript = stdout.trim();
+      try {
+        const { stdout } = await execFileAsync(python, [scriptPath, absAudioPath]);
+        const transcript = stdout.trim();
 
-      await prisma.meeting.update({
-        where: { id: meeting.id },
-        data: {
-          status: "TRANSCRIBED",
-          transcriptText: transcript || null,
-        },
-        select: { id: true },
-      });
+        await prisma.meeting.update({
+          where: { id: meeting.id },
+          data: {
+            status: "TRANSCRIBED",
+            transcriptText: transcript || null,
+          },
+          select: { id: true },
+        });
 
-      console.error(`transcribe-worker: done (whole-file fallback) meeting=${meeting.id}`);
-      return;
+        console.error(`transcribe-worker: done (whole-file fallback) meeting=${meeting.id}`);
+        return;
+      } catch (localErr) {
+        if (!useOpenAIFallback) throw localErr;
+
+        console.error(
+          `transcribe-worker: local whole-file failed, falling back to OpenAI audio: ${
+            localErr instanceof Error ? localErr.message : String(localErr)
+          }`,
+        );
+
+        const transcript = await transcribeWithOpenAI(absAudioPath);
+
+        await prisma.meeting.update({
+          where: { id: meeting.id },
+          data: {
+            status: "TRANSCRIBED",
+            transcriptText: transcript || null,
+          },
+          select: { id: true },
+        });
+
+        console.error(`transcribe-worker: done (OpenAI whole-file fallback) meeting=${meeting.id}`);
+        return;
+      }
     }
 
     // Transcribe each chunk, persist per-chunk transcript in the chunks dir.
@@ -141,8 +207,20 @@ async function main() {
       const absChunkPath = path.join(absChunksDir, name);
       const absOutTxt = path.join(absChunksDir, `${name}.txt`);
 
-      const { stdout } = await execFileAsync(python, [scriptPath, absChunkPath]);
-      const t = stdout.trim();
+      let t = "";
+      try {
+        const { stdout } = await execFileAsync(python, [scriptPath, absChunkPath]);
+        t = stdout.trim();
+      } catch (err) {
+        if (!useOpenAIFallback) throw err;
+
+        console.error(
+          `transcribe-worker: local chunk failed, using OpenAI audio for ${name}: ${
+            err instanceof Error ? err.message : String(err)
+          }`,
+        );
+        t = await transcribeWithOpenAI(absChunkPath);
+      }
 
       await fs.writeFile(absOutTxt, t ? `${t}\n` : "", "utf8");
       chunkTranscripts.push(t);
