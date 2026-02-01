@@ -16,7 +16,7 @@
     - On transcribe start, create `data/audio/<meetingId>/chunks/` and split into ~120s chunks.
     - Record `totalChunks`.
 
-- [ ] LongAudio MSU2: Transcribe chunks + stitch transcript
+- [x] LongAudio MSU2: Transcribe chunks + stitch transcript
   - AC:
     - Transcribe each chunk independently.
     - Persist per-chunk transcript and final stitched `Meeting.transcriptText`.
