@@ -73,7 +73,7 @@ export function QAPanel({ meetingId, initial }: { meetingId: string; initial: QA
           {isSubmitting ? "Saving…" : "Save question"}
         </button>
         <div className="text-xs text-muted-foreground">
-          (MSU4 stores question history. Answer generation comes later.)
+          (v0: answers are generated via local keyword retrieval from transcript/summary — no OpenAI yet.)
         </div>
       </form>
 
