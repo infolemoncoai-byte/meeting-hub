@@ -1,5 +1,5 @@
 {
   "state": "sprint",
-  "task": "MSU2: Transcription worker v0 (local faster-whisper) + status updates",
-  "updatedAt": "2026-01-31T23:57:53Z"
+  "task": "MSU3: Summarize with OpenAI (Chinese) + store summary",
+  "updatedAt": "2026-02-01T00:15:05Z"
 }

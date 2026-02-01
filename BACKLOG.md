@@ -8,7 +8,7 @@
 ## TODO (P0)
 - [x] MSU1: Upload page + API to store audio file on disk (no processing yet)
   - AC: upload m4a/wav; creates Meeting row; stores file under `data/audio/<meetingId>/...`
-- [ ] MSU2: Transcription worker v0 (local faster-whisper) + status updates
+- [x] MSU2: Transcription worker v0 (local faster-whisper) + status updates
   - AC: click "Transcribe" starts; status transitions; transcript saved; no diarization
 - [ ] MSU3: Summarize with OpenAI (Chinese) + store summary
   - AC: summary sections: Decisions/Action Items/Risks/Key Topics/Glossary
