@@ -18,10 +18,13 @@
 
 # local runtime
 .env
+.env.*
+!.env.example
 .dev
 *.db
 /node_modules
 /out/
+.venv/
 
 # production
 /build
@@ -36,8 +39,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files (keep .env.example committed)
+.env.local*
 
 # vercel
 .vercel
@@ -51,3 +54,6 @@ next-env.d.ts
 # uploaded audio (keep folder structure via .gitkeep)
 /data/audio/*
 !/data/audio/.gitkeep
+
+# local scratch audio
+/data/tmp_*

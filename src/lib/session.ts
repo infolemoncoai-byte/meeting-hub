@@ -18,7 +18,15 @@ export const sessionOptions: SessionOptions = {
     // dev fallback; DO NOT use in production
     "dev_password_dev_password_dev_password_dev_password",
   cookieOptions: {
-    secure: process.env.NODE_ENV === "production",
+    // If you're serving over plain HTTP (e.g. localhost / private LAN), set:
+    //   MEETING_HUB_COOKIE_SECURE=0
+    // In production behind HTTPS, leave unset (defaults true).
+    secure:
+      process.env.MEETING_HUB_COOKIE_SECURE === "0"
+        ? false
+        : process.env.MEETING_HUB_COOKIE_SECURE === "1"
+          ? true
+          : process.env.NODE_ENV === "production",
   },
 };
 

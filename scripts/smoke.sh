@@ -2,7 +2,8 @@
 set -euo pipefail
 
 BASE_URL=${BASE_URL:-http://127.0.0.1:3001}
-PASSWORD=${MEETING_HUB_PASSWORD:-}
+# Auth password used by /api/login (separate from iron-session encryption password).
+PASSWORD=${MEETING_HUB_PASSWORD:-${SESSION_PASSWORD:-}}
 AUDIO_FILE=${AUDIO_FILE:-}
 TITLE=${TITLE:-"Smoke Test Meeting"}
 
