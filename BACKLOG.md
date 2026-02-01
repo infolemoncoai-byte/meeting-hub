@@ -14,7 +14,7 @@
 ## TODO (P1)
 - [ ] MSU5: Retrieval v0 for Q&A (keyword/FTS) + citations (optional)
 - [ ] MSU6: OpenAI Audio API fallback for transcription (toggle)
-- [ ] MSU7: Production deploy (systemd service) on port 3001 + basic hardening
+- [x] MSU7: Production deploy (systemd service) on port 3001 + basic hardening
 
 ## DONE
 - [x] Repo created + Next.js scaffold + Password Gate + SQLite/Prisma init
