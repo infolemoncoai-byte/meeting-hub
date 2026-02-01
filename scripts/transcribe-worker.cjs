@@ -56,9 +56,11 @@ async function main() {
     const st = await fs.stat(absAudioPath);
     if (!st.isFile()) throw new Error("audio path is not a file");
 
-    // LongAudio MSU1: pre-split audio into ~120s chunks (even though we still transcribe as a whole for now)
+    // LongAudio MSU2: split into ~120s chunks, transcribe per chunk, persist per-chunk transcript,
+    // then stitch into Meeting.transcriptText.
     const absChunksDir = path.join(process.cwd(), "data", "audio", meeting.id, "chunks");
-    try {
+
+    async function ensureChunks() {
       await fs.rm(absChunksDir, { recursive: true, force: true });
       await fs.mkdir(absChunksDir, { recursive: true });
 
@@ -81,17 +83,20 @@ async function main() {
         outPattern,
       ]);
 
-      const chunkNames = (await fs.readdir(absChunksDir)).filter((n) => n.toLowerCase().endsWith(".wav"));
+      const chunkNames = (await fs.readdir(absChunksDir))
+        .filter((n) => n.toLowerCase().endsWith(".wav"))
+        .sort();
+
       const totalChunks = chunkNames.length;
+      if (totalChunks === 0) throw new Error("no chunks produced by ffmpeg");
 
       await prisma.meeting.update({
         where: { id: meeting.id },
         data: { totalChunks },
         select: { id: true },
       });
-    } catch (e) {
-      // Don't fail the whole transcription yet — chunking is a best-effort pre-step.
-      console.error(`transcribe-worker: chunking failed: ${e instanceof Error ? e.message : String(e)}`);
+
+      return chunkNames;
     }
 
     const venvPython = path.join(process.cwd(), ".venv", "bin", "python3");
@@ -102,14 +107,57 @@ async function main() {
         .then(() => venvPython)
         .catch(() => "python3"));
 
-    const { stdout } = await execFileAsync(python, [scriptPath, absAudioPath]);
-    const transcript = stdout.trim();
+    let chunkNames;
+    try {
+      chunkNames = await ensureChunks();
+    } catch (e) {
+      // Fallback: if chunking fails, transcribe whole file to avoid complete failure.
+      console.error(
+        `transcribe-worker: chunking failed, falling back to whole-file transcription: ${
+          e instanceof Error ? e.message : String(e)
+        }`,
+      );
+
+      const { stdout } = await execFileAsync(python, [scriptPath, absAudioPath]);
+      const transcript = stdout.trim();
+
+      await prisma.meeting.update({
+        where: { id: meeting.id },
+        data: {
+          status: "TRANSCRIBED",
+          transcriptText: transcript || null,
+        },
+        select: { id: true },
+      });
+
+      console.error(`transcribe-worker: done (whole-file fallback) meeting=${meeting.id}`);
+      return;
+    }
+
+    // Transcribe each chunk, persist per-chunk transcript in the chunks dir.
+    const chunkTranscripts = [];
+
+    for (const name of chunkNames) {
+      const absChunkPath = path.join(absChunksDir, name);
+      const absOutTxt = path.join(absChunksDir, `${name}.txt`);
+
+      const { stdout } = await execFileAsync(python, [scriptPath, absChunkPath]);
+      const t = stdout.trim();
+
+      await fs.writeFile(absOutTxt, t ? `${t}\n` : "", "utf8");
+      chunkTranscripts.push(t);
+    }
+
+    const stitched = chunkTranscripts
+      .map((t) => t.trim())
+      .filter(Boolean)
+      .join("\n\n");
 
     await prisma.meeting.update({
       where: { id: meeting.id },
       data: {
         status: "TRANSCRIBED",
-        transcriptText: transcript || null,
+        transcriptText: stitched || null,
       },
       select: { id: true },
     });
