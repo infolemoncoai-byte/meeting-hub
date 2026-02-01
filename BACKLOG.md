@@ -11,7 +11,7 @@
 - [x] MSU2: Transcription worker v0 (local faster-whisper) + status updates
   - AC: click "Transcribe" starts; status transitions; transcript saved; no diarization
 
-- [ ] LongAudio MSU1: Chunk long audio with ffmpeg (120s segments)
+- [x] LongAudio MSU1: Chunk long audio with ffmpeg (120s segments)
   - AC:
     - On transcribe start, create `data/audio/<meetingId>/chunks/` and split into ~120s chunks.
     - Record `totalChunks`.
