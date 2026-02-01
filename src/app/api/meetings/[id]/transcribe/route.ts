@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import path from "node:path";
+import fs from "node:fs/promises";
 import { execFile } from "node:child_process";
 
 export const runtime = "nodejs";
@@ -51,6 +52,16 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
 
   const absAudioPath = path.join(process.cwd(), meeting.audioPath);
   const scriptPath = path.join(process.cwd(), "scripts", "transcribe.py");
+
+  // Fail fast with a clear error if the audio file is missing on disk.
+  try {
+    const st = await fs.stat(absAudioPath);
+    if (!st.isFile()) {
+      return NextResponse.json({ error: "audio path is not a file" }, { status: 400 });
+    }
+  } catch {
+    return NextResponse.json({ error: "audio file not found on disk" }, { status: 400 });
+  }
 
   try {
     const { stdout } = await execFileAsync("python3", [scriptPath, absAudioPath]);
