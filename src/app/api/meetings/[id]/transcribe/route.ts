@@ -2,23 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import path from "node:path";
 import fs from "node:fs/promises";
-import { execFile } from "node:child_process";
+import { spawn } from "node:child_process";
 
 export const runtime = "nodejs";
-
-function execFileAsync(cmd: string, args: string[]) {
-  return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
-    execFile(cmd, args, { maxBuffer: 50 * 1024 * 1024 }, (err, stdout, stderr) => {
-      if (err) {
-        const e = new Error(`${err.message}\n${stderr}`.trim());
-        (e as { cause?: unknown }).cause = err;
-        reject(e);
-        return;
-      }
-      resolve({ stdout: String(stdout), stderr: String(stderr) });
-    });
-  });
-}
 
 export async function POST(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
@@ -51,7 +37,6 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
   });
 
   const absAudioPath = path.join(process.cwd(), meeting.audioPath);
-  const scriptPath = path.join(process.cwd(), "scripts", "transcribe.py");
 
   // Fail fast with a clear error if the audio file is missing on disk.
   try {
@@ -63,25 +48,21 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
     return NextResponse.json({ error: "audio file not found on disk" }, { status: 400 });
   }
 
-  // Prefer a repo-local venv if present (more predictable for systemd deploys).
-  // Override with MEETING_HUB_PYTHON if you want to point at a different interpreter.
-  const venvPython = path.join(process.cwd(), ".venv", "bin", "python3");
-  const python = process.env.MEETING_HUB_PYTHON || (await fs.stat(venvPython).then(() => venvPython).catch(() => "python3"));
+  // Kick off background worker (detached) so the API can return immediately.
+  // The worker updates Meeting.status + transcriptText.
+  const workerPath = path.join(process.cwd(), "scripts", "transcribe-worker.cjs");
 
   try {
-    const { stdout } = await execFileAsync(python, [scriptPath, absAudioPath]);
-    const transcript = stdout.trim();
-
-    await prisma.meeting.update({
-      where: { id: meeting.id },
-      data: {
-        status: "TRANSCRIBED",
-        transcriptText: transcript || null,
-      },
-      select: { id: true },
+    const child = spawn(process.execPath, [workerPath, meeting.id], {
+      detached: true,
+      stdio: "ignore",
+      env: process.env,
+      cwd: process.cwd(),
     });
 
-    return NextResponse.json({ ok: true });
+    child.unref();
+
+    return NextResponse.json({ ok: true }, { status: 202 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
 
@@ -96,9 +77,8 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
 
     return NextResponse.json(
       {
-        error: "transcription failed",
+        error: "failed to start transcription worker",
         detail: msg,
-        hint: "Install faster-whisper (see scripts/transcribe.py) or adjust the transcriber implementation.",
       },
       { status: 500 },
     );
