@@ -123,10 +123,12 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
 
+    // If summarization fails, keep transcript intact and roll back to TRANSCRIBED.
+    // (Marking the whole meeting FAILED is noisy when OPENAI_API_KEY isn't configured.)
     await prisma.meeting.update({
       where: { id: meeting.id },
       data: {
-        status: "FAILED",
+        status: "TRANSCRIBED",
         summaryMd: null,
       },
       select: { id: true },
