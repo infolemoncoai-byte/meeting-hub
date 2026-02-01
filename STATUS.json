@@ -1,5 +1,5 @@
 {
-  "state": "idle",
-  "task": "stable",
-  "updatedAt": "2026-02-01T02:41:55Z"
+  "state": "sprint",
+  "task": "Chore: migrate Next.js middleware.ts -> proxy.ts (remove build warning)",
+  "updatedAt": "2026-02-01T02:57:33Z"
 }
