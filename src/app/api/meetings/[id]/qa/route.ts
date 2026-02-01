@@ -11,13 +11,28 @@ async function loadMeeting(id: string) {
 }
 
 function tokenize(q: string) {
-  return q
+  const ascii = q
     .toLowerCase()
     .split(/[^a-z0-9]+/g)
     .map((t) => t.trim())
     .filter(Boolean)
     .filter((t) => t.length >= 2)
     .filter((t) => !STOPWORDS.has(t));
+
+  if (ascii.length > 0) return ascii;
+
+  // CJK fallback: build overlapping bigrams so Chinese queries can match.
+  // Keep it simple and local (no OpenAI).
+  const cleaned = q.replace(/\s+/g, "").trim();
+  const cjkChars = Array.from(cleaned).filter((ch) => /[\u4E00-\u9FFF]/.test(ch));
+  if (cjkChars.length < 2) return [];
+
+  const grams: string[] = [];
+  for (let i = 0; i < cjkChars.length - 1; i++) {
+    grams.push(cjkChars[i] + cjkChars[i + 1]);
+  }
+  // de-dupe
+  return Array.from(new Set(grams));
 }
 
 const STOPWORDS = new Set([

@@ -3,7 +3,22 @@ import type { NextRequest } from "next/server";
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (pathname.startsWith("/login") || pathname.startsWith("/api/login") || pathname.startsWith("/_next") || pathname.startsWith("/favicon")) {
+
+  // Always allow the login page + endpoint, and Next static assets.
+  if (
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/api/login") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon")
+  ) {
+    return NextResponse.next();
+  }
+
+  // Allow script/automation clients to hit API endpoints without a browser cookie.
+  // This avoids issues with `Secure` cookies when the service is served over plain HTTP.
+  // Note: UI routes are still protected by the session cookie.
+  const client = (req.headers.get("x-meeting-hub-client") || "").toLowerCase();
+  if (client === "script" && pathname.startsWith("/api/")) {
     return NextResponse.next();
   }
 
