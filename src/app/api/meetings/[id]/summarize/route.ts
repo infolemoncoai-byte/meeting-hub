@@ -78,7 +78,7 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
 
   const meeting = await prisma.meeting.findUnique({
     where: { id },
-    select: { id: true, status: true, transcriptText: true },
+    select: { id: true, status: true, transcriptText: true, summaryMd: true },
   });
 
   if (!meeting) {
@@ -88,8 +88,13 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
     return NextResponse.json({ error: "meeting has no transcriptText" }, { status: 400 });
   }
 
+  // Idempotency: if already summarized, return ok.
+  if (meeting.status === "READY" && meeting.summaryMd) {
+    return NextResponse.json({ ok: true, already: true });
+  }
+
   // Only allow from a small set of states.
-  if (!(meeting.status === "TRANSCRIBED" || meeting.status === "FAILED")) {
+  if (!(meeting.status === "TRANSCRIBED" || meeting.status === "FAILED" || meeting.status === "READY")) {
     return NextResponse.json(
       { error: `cannot summarize when status=${meeting.status}` },
       { status: 409 },
